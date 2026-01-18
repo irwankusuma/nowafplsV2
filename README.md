@@ -1,4 +1,4 @@
-# nowafpls V2
+# nowafplsV2
 
 Burp Suite extension to bypass WAF (Web Application Firewall) by injecting junk data into HTTP requests.
 
