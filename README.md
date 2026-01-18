@@ -1,8 +1,19 @@
-# nowafplsV2
+# nowafpls V2
 
 Burp Suite extension to bypass WAF (Web Application Firewall) by injecting junk data into HTTP requests.
 
 Based on [assetnote/nowafpls](https://github.com/assetnote/nowafpls) by Shubham Shah, with improvements and maintenance by [Irwan Kusuma](https://www.linkedin.com/in/donesia).
+
+---
+
+## Two Versions Available
+
+| Version | API | Requirements | Best For |
+|---------|-----|--------------|----------|
+| **Python** (`nowafplsV2.py`) | Legacy Burp API | Jython 2.7 | Quick setup, existing Jython users |
+| **Java** (`nowafplsV2-java/`) | Montoya API | Java 17+ | BApp Store, better performance |
+
+Both versions have **identical functionality** - choose based on your preference.
 
 ---
 
@@ -60,11 +71,43 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 
 ## Installation
 
-### Prerequisites
+Choose **one** of the two installation methods below.
+
+---
+
+### Option A: Java Version (Recommended)
+
+**Prerequisites:**
+- Burp Suite Professional or Community Edition
+- Java 17 or higher (usually bundled with Burp Suite)
+
+**Installation Steps:**
+
+1. **Download the JAR**
+   - Download `nowafplsV2-2.0.0.jar` from the [Releases](https://github.com/irwankusuma/nowafplsV2/releases) page
+   - Or build from source: `cd nowafplsV2-java && gradle build`
+
+2. **Load the Extension**
+   - Open Burp Suite
+   - Navigate to **Extensions** > **Installed**
+   - Click **Add**
+   - Extension type: **Java**
+   - Extension file: Select `nowafplsV2-2.0.0.jar`
+   - Click **Next**
+
+3. **Verify Installation**
+   - The extension should appear in the list with status **Loaded**
+   - Check the **Output** tab for: `[nowafplsV2] Extension loaded successfully.`
+
+---
+
+### Option B: Python Version
+
+**Prerequisites:**
 - Burp Suite Professional or Community Edition
 - Jython Standalone JAR (required for Python extensions)
 
-### Installation Steps
+**Installation Steps:**
 
 1. **Download Jython**
    - Visit [Jython Downloads](https://www.jython.org/download)
@@ -214,9 +257,32 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 ---
 
+## Building from Source (Java)
+
+If you want to build the Java version from source:
+
+```bash
+# Clone the repository
+git clone https://github.com/irwankusuma/nowafplsV2.git
+cd nowafplsV2/nowafplsV2-java
+
+# Build with Gradle
+gradle build
+
+# Output JAR location
+ls build/libs/nowafplsV2-2.0.0.jar
+```
+
+**Requirements for building:**
+- Java 17+ (JDK)
+- Gradle 7.0+
+
+---
+
 ## Changelog
 
-### V2 (Current)
+### V2.0 (Current)
+- **Java/Montoya API version** - New Java version for BApp Store compliance
 - **Auto-Inject Scanner** - Automatically inject junk into all Active Scan requests (main V2 feature)
 - Persistent settings (auto-inject configuration saved between sessions)
 - Toggle auto-inject via context menu
@@ -225,12 +291,13 @@ MIT License - See [LICENSE](LICENSE) file for details.
   - `text/csv` / `application/csv`
   - `application/yaml` / `text/yaml`
   - `application/graphql`
-  - `application/ndjson` (JSON Lines)
-- Improved JSON object/array detection
-- BOM (Byte Order Mark) handling for UTF-8
+  - `application/ndjson` (JSON Lines) - 12 variants supported
+- Improved JSON object/array detection with indentation preservation
+- BOM (Byte Order Mark) handling for UTF-8 (JSON, XML, JSON Lines)
+- Intruder payload positions context exclusion
 - Rate-limited error alerts
 - Memory leak prevention for logging
-- Comment marker "Junk Data" on injected requests
+- Comment marker "Junk Data" on injected requests (visible in HTTP History)
 
 ### V1 (Original by Assetnote)
 - Manual junk data insertion in Repeater/Intruder

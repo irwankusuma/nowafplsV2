@@ -1,6 +1,6 @@
 # This "nowafplsV2" based on https://github.com/assetnote/nowafpls by Shubham Shah (https://github.com/infosec-au)
 # Improved and maintained by Irwan Kusuma (https://www.linkedin.com/in/donesia)
-from burp import IBurpExtender, IContextMenuFactory, IHttpListener, IRequestInfo, IContextMenuInvocation
+from burp import IBurpExtender, IContextMenuFactory, IHttpListener, IRequestInfo, IContextMenuInvocation, IExtensionStateListener
 from javax.swing import JMenuItem, JLabel, JTextField, JOptionPane, JPanel, JFrame
 import javax.swing as swing
 from java.util import ArrayList
@@ -13,13 +13,14 @@ import string
 import time
 import traceback
 
-class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener):
+class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtensionStateListener):
     def registerExtenderCallbacks(self, callbacks):
         self._callbacks = callbacks
         self._helpers = callbacks.getHelpers()
         callbacks.setExtensionName("nowafplsV2 (https://www.linkedin.com/in/donesia)")
         callbacks.registerContextMenuFactory(self)
         callbacks.registerHttpListener(self)
+        callbacks.registerExtensionStateListener(self)
 
         self._auto_inject_enabled = self._load_bool_setting("auto_inject_enabled", False)
         self._auto_inject_kb = self._load_int_setting("auto_inject_kb", 128)
@@ -27,6 +28,16 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener):
         self._missing_ct_paths = set()
         self._missing_ct_order = deque()
         self._missing_ct_limit = 5000
+
+    def extensionUnloaded(self):
+        """Called when the extension is unloaded. Clean up resources."""
+        try:
+            self._alert_last.clear()
+            self._missing_ct_paths.clear()
+            self._missing_ct_order.clear()
+            self._callbacks.printOutput("[nowafplsV2] Extension unloaded. Resources cleaned up.")
+        except Exception:
+            pass
 
     def createMenuItems(self, invocation):
         if invocation is None:
