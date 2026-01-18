@@ -32,6 +32,16 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 
 ---
 
+## Screenshots
+
+### HTTP History - Toggle Auto-Inject Scanner
+![HTTP History](screenshot/screenshot1.png)
+
+### Repeater - Manual Insert Junk Data
+![Repeater Manual Insert](screenshot/screenshot2.png)
+
+---
+
 ## Supported Content-Types
 
 | Content-Type | Junk Strategy |
@@ -102,6 +112,10 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 4. All requests from **Active Scan** will automatically have junk data injected
 5. To disable, click the same menu item again
 
+**Live Configuration:**
+- Auto-inject can be **enabled/disabled while scanner is running** - takes effect on the next request
+- Auto-inject size can be **changed while scanner is running** - takes effect on the next request
+
 ### Configure Auto-Inject Size
 
 1. Right-click anywhere in Burp
@@ -116,6 +130,10 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 ### Burp Suite Edition
 - **Community Edition** - Only supports **Manual Inject** (right-click menu in Repeater/Intruder)
 - **Professional Edition** - Supports both **Manual Inject** and **Auto-Inject Scanner** (Active Scan required)
+
+### HTTP Method Support
+- Works with **any HTTP method** (GET, POST, PUT, PATCH, DELETE, etc.)
+- Only requirement: request must have a **body** with supported content-type
 
 ### Unsupported Requests
 - **Chunked Transfer-Encoding** - Not supported (will be skipped)
@@ -216,4 +234,4 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 ### V1 (Original by Assetnote)
 - Manual junk data insertion in Repeater/Intruder
-- Support for: URL-encoded, JSON, XML, multipart, text/plain
+- Limited content-type support
