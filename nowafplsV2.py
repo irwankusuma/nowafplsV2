@@ -1,4 +1,4 @@
-# This "nowafpls V2" based on https://github.com/assetnote/nowafpls by Shubham Shah (https://github.com/infosec-au)
+# This "nowafplsV2" based on https://github.com/assetnote/nowafpls by Shubham Shah (https://github.com/infosec-au)
 # Improved and maintained by Irwan Kusuma (https://www.linkedin.com/in/donesia)
 from burp import IBurpExtender, IContextMenuFactory, IHttpListener, IRequestInfo, IContextMenuInvocation
 from javax.swing import JMenuItem, JLabel, JTextField, JOptionPane, JPanel, JFrame
@@ -17,7 +17,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener):
     def registerExtenderCallbacks(self, callbacks):
         self._callbacks = callbacks
         self._helpers = callbacks.getHelpers()
-        callbacks.setExtensionName("nowafpls V2 (https://www.linkedin.com/in/donesia)")
+        callbacks.setExtensionName("nowafplsV2 (https://www.linkedin.com/in/donesia)")
         callbacks.registerContextMenuFactory(self)
         callbacks.registerHttpListener(self)
 
@@ -92,7 +92,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener):
             return default
 
     def _log_error(self, context):
-        message = "[nowafpls V2] Error in {0}:\n{1}".format(context, traceback.format_exc())
+        message = "[nowafplsV2] Error in {0}:\n{1}".format(context, traceback.format_exc())
         try:
             self._callbacks.printError(message)
         except Exception:
@@ -106,7 +106,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener):
                 if now - last < 60:
                     return
                 self._alert_last[context] = now
-            self._callbacks.issueAlert("[nowafpls V2] Error in {0}. See Extender output.".format(context))
+            self._callbacks.issueAlert("[nowafplsV2] Error in {0}. See Extender output.".format(context))
         except Exception:
             pass
 
@@ -231,7 +231,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener):
             elif not raw_content_type:
                 raw_content_type = "<unknown>"
             self._callbacks.printOutput(
-                "[nowafpls V2] Unsupported or missing Content-Type with body: {0} {1} (Content-Type: {2})".format(
+                "[nowafplsV2] Unsupported or missing Content-Type with body: {0} {1} (Content-Type: {2})".format(
                     method, full_url, raw_content_type
                 )
             )
