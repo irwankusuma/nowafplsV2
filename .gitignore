@@ -1,0 +1,29 @@
+# Java build output
+nowafplsV2-java/build/
+nowafplsV2-java/.gradle/
+
+# Gradle wrapper (if not using wrapper)
+nowafplsV2-java/gradle/
+nowafplsV2-java/gradlew
+nowafplsV2-java/gradlew.bat
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Burp Suite files
+*.burp
+*.bak
+
+# Temporary files
+*.tmp
+*.log
