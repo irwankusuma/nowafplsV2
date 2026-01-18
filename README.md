@@ -113,6 +113,10 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 
 ## Important Notes
 
+### Burp Suite Edition
+- **Community Edition** - Only supports **Manual Inject** (right-click menu in Repeater/Intruder)
+- **Professional Edition** - Supports both **Manual Inject** and **Auto-Inject Scanner** (Active Scan required)
+
 ### Unsupported Requests
 - **Chunked Transfer-Encoding** - Not supported (will be skipped)
 - **Unrecognized Content-Type** - A warning will be logged to Extender output
