@@ -84,7 +84,7 @@ Choose **one** of the two installation methods below.
 **Installation Steps:**
 
 1. **Download the JAR**
-   - Download `nowafplsV2-2.0.0.jar` from the [Releases](https://github.com/irwankusuma/nowafplsV2/releases) page
+   - Download `nowafplsV2-2.1.0.jar` from the [Releases](https://github.com/irwankusuma/nowafplsV2/releases) page
    - Or build from source: `cd nowafplsV2-java && gradle build`
 
 2. **Load the Extension**
@@ -92,7 +92,7 @@ Choose **one** of the two installation methods below.
    - Navigate to **Extensions** > **Installed**
    - Click **Add**
    - Extension type: **Java**
-   - Extension file: Select `nowafplsV2-2.0.0.jar`
+   - Extension file: Select `nowafplsV2-2.1.0.jar`
    - Click **Next**
 
 3. **Verify Installation**
@@ -280,7 +280,7 @@ cd nowafplsV2/nowafplsV2-java
 gradle build
 
 # Output JAR location
-ls build/libs/nowafplsV2-2.0.0.jar
+ls build/libs/nowafplsV2-2.1.0.jar
 ```
 
 **Requirements for building:**
@@ -291,7 +291,14 @@ ls build/libs/nowafplsV2-2.0.0.jar
 
 ## Changelog
 
-### V2.0 (Current)
+### V2.1.0 (Current)
+- **DAST support** - Auto-inject works with Burp Suite DAST
+- **Default auto-inject ON** - Auto-inject enabled by default (128KB)
+- Identical output messages between Java and Python versions
+- Unsupported content-type logging with deduplication
+- Rate-limited error alerts (60 second cooldown)
+
+### V2.0.0
 - **Java/Montoya API version** - New Java version for BApp Store compliance
 - **Auto-Inject Scanner/DAST** - Automatically inject junk into all Active Scan and DAST requests (main V2 feature)
 - Persistent settings (auto-inject configuration saved between sessions)
