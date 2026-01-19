@@ -8,12 +8,12 @@ Based on [assetnote/nowafpls](https://github.com/assetnote/nowafpls) by Shubham 
 
 ## Two Versions Available
 
-| Version | API | Requirements | Best For |
-|---------|-----|--------------|----------|
-| **Python** (`nowafplsV2.py`) | Legacy Burp API | Jython 2.7 | Quick setup, existing Jython users |
-| **Java** (`nowafplsV2-java/`) | Montoya API | Java 17+ | BApp Store, better performance |
+| Version | API | Requirements | DAST Support | Best For |
+|---------|-----|--------------|--------------|----------|
+| **Python** (`nowafplsV2.py`) | Legacy Burp API | Jython 2.7 | No | Quick setup, existing Jython users |
+| **Java** (`nowafplsV2-java/`) | Montoya API | Java 17+ | Yes | BApp Store, DAST, better performance |
 
-Both versions have **identical functionality** - choose based on your preference.
+Both versions have **identical functionality** for Desktop - choose based on your preference. For DAST, use the Java version.
 
 ---
 
@@ -36,8 +36,8 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 ## Features
 
 - **Manual Inject** - Insert junk data via right-click context menu
-- **Auto-Inject Scanner** - Automatically inject junk into all Burp Scanner requests
-- **Customizable Size** - Choose junk size: 8KB, 16KB, 32KB, 64KB, 128KB, 150KB, 1MB, or custom
+- **Auto-Inject Scanner/DAST** - Automatically inject junk into all Burp Scanner and DAST requests (enabled by default)
+- **Customizable Size** - Choose junk size: 8KB, 16KB, 32KB, 64KB, 128KB, 150KB, 1MB, or custom (default: 128KB)
 - **Multi Content-Type Support** - Supports various request body formats
 - **Persistent Settings** - Settings are saved between Burp sessions
 
@@ -45,7 +45,7 @@ The WAF only inspects the beginning of the request, allowing the SQL injection p
 
 ## Screenshots
 
-### HTTP History - Toggle Auto-Inject Scanner
+### HTTP History - Toggle Auto-Inject Scanner/DAST
 ![HTTP History](screenshot/screenshot1.png)
 
 ### Repeater - Manual Insert Junk Data
@@ -148,17 +148,20 @@ Choose **one** of the two installation methods below.
 - For more control, highlight (select) the desired insertion point before right-clicking
 - **For Intruder**: Insert junk in Repeater first, then use **Send to Intruder**
 
-### Auto-Inject for Scanner
+### Auto-Inject for Scanner/DAST
 
+**Auto-inject is enabled by default** when the extension is loaded. All Active Scan requests will automatically have junk data injected.
+
+To toggle auto-inject:
 1. Right-click anywhere in Burp
-2. Select **Auto-Inject (Scanner): OFF** to enable
-3. The menu will change to **Auto-Inject (Scanner): ON**
-4. All requests from **Active Scan** will automatically have junk data injected
-5. To disable, click the same menu item again
+2. Select **Auto-Inject (Scanner/DAST): ON** to disable
+3. The menu will change to **Auto-Inject (Scanner/DAST): OFF**
+4. Click the same menu item again to re-enable
 
 **Live Configuration:**
 - Auto-inject can be **enabled/disabled while scanner is running** - takes effect on the next request
 - Auto-inject size can be **changed while scanner is running** - takes effect on the next request
+- Default size: **128 KB**
 
 ### Configure Auto-Inject Size
 
@@ -173,7 +176,13 @@ Choose **one** of the two installation methods below.
 
 ### Burp Suite Edition
 - **Community Edition** - Only supports **Manual Inject** (right-click menu in Repeater)
-- **Professional Edition** - Supports both **Manual Inject** and **Auto-Inject Scanner** (Active Scan required)
+- **Professional Edition** - Supports both **Manual Inject** and **Auto-Inject Scanner/DAST** (Active Scan required)
+- **DAST (Enterprise)** - Supports **Auto-Inject** only (Java version required, no UI features)
+
+### DAST Requirements
+- **Java version only** - DAST does not support Python/Jython extensions
+- **No UI features** - Manual inject context menu is not available in DAST
+- **Auto-inject works** - Automatically injects junk into DAST scan requests
 
 ### HTTP Method Support
 - Works with **any HTTP method** (GET, POST, PUT, PATCH, DELETE, etc.)
@@ -284,7 +293,7 @@ ls build/libs/nowafplsV2-2.0.0.jar
 
 ### V2.0 (Current)
 - **Java/Montoya API version** - New Java version for BApp Store compliance
-- **Auto-Inject Scanner** - Automatically inject junk into all Active Scan requests (main V2 feature)
+- **Auto-Inject Scanner/DAST** - Automatically inject junk into all Active Scan and DAST requests (main V2 feature)
 - Persistent settings (auto-inject configuration saved between sessions)
 - Toggle auto-inject via context menu
 - Customizable auto-inject size

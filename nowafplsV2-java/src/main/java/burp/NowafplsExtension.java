@@ -27,6 +27,8 @@ import java.awt.Window;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.List;
+import java.util.Deque;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,11 +36,16 @@ import java.util.regex.Pattern;
 public class NowafplsExtension implements BurpExtension {
 
     private MontoyaApi api;
-    private boolean autoInjectEnabled = false;
+    private boolean autoInjectEnabled = true;
     private int autoInjectKb = 128;
 
     // Rate limiting for alerts
     private final Map<String, Long> alertLast = new ConcurrentHashMap<>();
+
+    // Deduplication for missing content-type logging (like Python version)
+    private final Set<String> missingCtPaths = ConcurrentHashMap.newKeySet();
+    private final Deque<String> missingCtOrder = new java.util.concurrent.ConcurrentLinkedDeque<>();
+    private static final int MISSING_CT_LIMIT = 5000;
 
     // Random parameter prefixes for realistic junk data (synced with Python version)
     private static final String[] PARAM_PREFIXES = {
@@ -404,7 +411,97 @@ public class NowafplsExtension implements BurpExtension {
 
     private void extensionUnloaded() {
         alertLast.clear();
+        missingCtPaths.clear();
+        missingCtOrder.clear();
         api.logging().logToOutput("[nowafplsV2] Extension unloaded. Resources cleaned up.");
+    }
+
+    // ==================== Error Handling (like Python version) ====================
+
+    private void alertError(String context, boolean rateLimit) {
+        try {
+            long now = System.currentTimeMillis();
+            if (rateLimit) {
+                Long last = alertLast.get(context);
+                if (last != null && (now - last) < 60000) { // 60 seconds rate limit
+                    return;
+                }
+                alertLast.put(context, now);
+            }
+            api.logging().raiseInfoEvent("[nowafplsV2] Error in " + context + ". See Extender output.");
+        } catch (Exception ignored) {}
+    }
+
+    private void maybeLogMissingContentType(HttpRequest request, String method, String url) {
+        // Check if request has body
+        if (request.body() == null || request.body().length() == 0) {
+            return;
+        }
+
+        String contentTypeHeader = getContentTypeHeader(request);
+        boolean hasHeader = contentTypeHeader != null && !contentTypeHeader.isEmpty();
+
+        if (hasHeader) {
+            String rawContentType = contentTypeHeader.split(";")[0].trim().toLowerCase();
+            if (isSupportedContentType(rawContentType)) {
+                return;
+            }
+        }
+
+        String key = method + " " + url;
+        if (missingCtPaths.contains(key)) {
+            return;
+        }
+
+        missingCtPaths.add(key);
+        missingCtOrder.addLast(key);
+
+        // Evict old entries if over limit
+        while (missingCtPaths.size() > MISSING_CT_LIMIT) {
+            String oldKey = missingCtOrder.pollFirst();
+            if (oldKey != null) {
+                missingCtPaths.remove(oldKey);
+            }
+        }
+
+        String displayContentType;
+        if (!hasHeader) {
+            displayContentType = "<missing>";
+        } else if (contentTypeHeader == null || contentTypeHeader.isEmpty()) {
+            displayContentType = "<unknown>";
+        } else {
+            displayContentType = contentTypeHeader.split(";")[0].trim();
+        }
+
+        api.logging().logToOutput("[nowafplsV2] Unsupported or missing Content-Type with body: " + method + " " + url + " (Content-Type: " + displayContentType + ")");
+    }
+
+    private boolean isSupportedContentType(String rawContentType) {
+        return rawContentType.contains("application/x-www-form-urlencoded") ||
+               rawContentType.contains("application/json") ||
+               rawContentType.contains("text/json") ||
+               rawContentType.contains("application/xml") ||
+               rawContentType.contains("text/xml") ||
+               rawContentType.contains("multipart/form-data") ||
+               rawContentType.contains("text/plain") ||
+               rawContentType.contains("application/graphql") ||
+               rawContentType.contains("text/graphql") ||
+               rawContentType.contains("application/yaml") ||
+               rawContentType.contains("text/yaml") ||
+               rawContentType.contains("text/csv") ||
+               rawContentType.contains("application/csv") ||
+               rawContentType.contains("application/ndjson") ||
+               rawContentType.contains("application/jsonl") ||
+               rawContentType.contains("application/json-lines") ||
+               rawContentType.contains("application/jsonlines") ||
+               rawContentType.contains("application/x-ndjson") ||
+               rawContentType.contains("application/x-jsonl") ||
+               rawContentType.contains("application/x-json-lines") ||
+               rawContentType.contains("application/x-jsonlines") ||
+               rawContentType.contains("text/ndjson") ||
+               rawContentType.contains("text/jsonl") ||
+               rawContentType.contains("text/json-lines") ||
+               rawContentType.contains("text/jsonlines");
     }
 
     // ==================== Context Menu ====================
@@ -440,7 +537,7 @@ public class NowafplsExtension implements BurpExtension {
             }
 
             // Auto-inject toggle (always show)
-            String toggleLabel = "Auto-Inject (Scanner): " + (autoInjectEnabled ? "ON" : "OFF");
+            String toggleLabel = "Auto-Inject (Scanner/DAST): " + (autoInjectEnabled ? "ON" : "OFF");
             JMenuItem toggleItem = new JMenuItem(toggleLabel);
             toggleItem.addActionListener(e -> toggleAutoInject());
             menuItems.add(toggleItem);
@@ -482,6 +579,9 @@ public class NowafplsExtension implements BurpExtension {
             int sizeBytes = showSizeDialog();
             if (sizeBytes <= 0) return;
 
+            // Log unsupported content types (like Python version)
+            maybeLogMissingContentType(request, request.method(), request.url());
+
             HttpRequest newRequest = injectJunkIntoRequest(request, sizeBytes);
             if (newRequest != null) {
                 editor.setRequest(newRequest);
@@ -491,6 +591,7 @@ public class NowafplsExtension implements BurpExtension {
             }
         } catch (Exception e) {
             api.logging().logToError("[nowafplsV2] Error inserting junk: " + e.getMessage());
+            alertError("insertJunkData", false);
             JOptionPane.showMessageDialog(null, "Error injecting junk data. Check Burp logs.");
         }
     }
@@ -503,6 +604,10 @@ public class NowafplsExtension implements BurpExtension {
             if (sizeBytes <= 0) return;
 
             HttpRequest request = selections.get(0).request();
+
+            // Log unsupported content types (like Python version)
+            maybeLogMissingContentType(request, request.method(), request.url());
+
             HttpRequest newRequest = injectJunkIntoRequest(request, sizeBytes);
 
             if (newRequest != null) {
@@ -513,6 +618,7 @@ public class NowafplsExtension implements BurpExtension {
             }
         } catch (Exception e) {
             api.logging().logToError("[nowafplsV2] Error: " + e.getMessage());
+            alertError("insertJunkDataFromSelection", false);
         }
     }
 
@@ -573,7 +679,9 @@ public class NowafplsExtension implements BurpExtension {
                 return RequestToBeSentAction.continueWith(request);
             }
 
-            if (request.toolSource().toolType() != ToolType.SCANNER) {
+            // Support Scanner (Pro/Community) and Extensions (DAST)
+            ToolType toolType = request.toolSource().toolType();
+            if (toolType != ToolType.SCANNER && toolType != ToolType.EXTENSIONS) {
                 return RequestToBeSentAction.continueWith(request);
             }
 
@@ -587,6 +695,9 @@ public class NowafplsExtension implements BurpExtension {
                 return RequestToBeSentAction.continueWith(request);
             }
 
+            // Log unsupported content types (like Python version)
+            maybeLogMissingContentType(request, request.method(), request.url());
+
             try {
                 int sizeBytes = autoInjectKb * 1024;
                 HttpRequest newRequest = injectJunkIntoRequest(request, sizeBytes);
@@ -596,6 +707,7 @@ public class NowafplsExtension implements BurpExtension {
                 }
             } catch (Exception e) {
                 api.logging().logToError("[nowafplsV2] Auto-inject error: " + e.getMessage());
+                alertError("processHttpMessage", true);
             }
 
             return RequestToBeSentAction.continueWith(request);

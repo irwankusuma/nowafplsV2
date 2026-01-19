@@ -22,12 +22,17 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtension
         callbacks.registerHttpListener(self)
         callbacks.registerExtensionStateListener(self)
 
-        self._auto_inject_enabled = self._load_bool_setting("auto_inject_enabled", False)
+        self._auto_inject_enabled = self._load_bool_setting("auto_inject_enabled", True)
         self._auto_inject_kb = self._load_int_setting("auto_inject_kb", 128)
         self._alert_last = {}
         self._missing_ct_paths = set()
         self._missing_ct_order = deque()
         self._missing_ct_limit = 5000
+
+        # Log extension loaded
+        self._callbacks.printOutput("[nowafplsV2] Extension loaded successfully.")
+        status = "ON" if self._auto_inject_enabled else "OFF"
+        self._callbacks.printOutput("[nowafplsV2] Auto-inject: {0}, Size: {1} KB".format(status, self._auto_inject_kb))
 
     def extensionUnloaded(self):
         """Called when the extension is unloaded. Clean up resources."""
@@ -84,7 +89,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtension
 
     def _auto_inject_label(self):
         status = "ON" if self._auto_inject_enabled else "OFF"
-        return "Auto-Inject (Scanner): " + status
+        return "Auto-Inject (Scanner/DAST): " + status
 
     def _auto_inject_size_label(self):
         return "Set Auto-Inject Size (KB) [" + str(self._auto_inject_kb) + "]"
@@ -832,6 +837,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtension
                 new_request = self._insert_junk(request, insertion_point, junk_data)
                 message.setRequest(self._update_content_length(new_request))
                 self._mark_junk_comment(message)
+                self._callbacks.printOutput("[nowafplsV2] Junk data inserted: {0} bytes".format(size_bytes))
         except Exception:
             self._log_error("insert_random_data")
             self._alert_error("insert_random_data", rate_limit=False)
@@ -843,6 +849,8 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtension
             "auto_inject_enabled",
             "true" if self._auto_inject_enabled else "false"
         )
+        status = "ON" if self._auto_inject_enabled else "OFF"
+        self._callbacks.printOutput("[nowafplsV2] Auto-inject: {0}".format(status))
 
     def set_auto_inject_size(self, event):
         prompt = "Auto-inject size (KB):"
@@ -858,6 +866,7 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtension
             return
         self._auto_inject_kb = size_kb
         self._callbacks.saveExtensionSetting("auto_inject_kb", str(size_kb))
+        self._callbacks.printOutput("[nowafplsV2] Auto-inject size set to: {0} KB".format(size_kb))
 
     def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
         try:
@@ -865,7 +874,8 @@ class BurpExtender(IBurpExtender, IContextMenuFactory, IHttpListener, IExtension
                 return
             if not messageIsRequest:
                 return
-            if toolFlag != self._callbacks.TOOL_SCANNER:
+            # Support Scanner (Pro/Community) and Extender (for DAST compatibility in Java version)
+            if toolFlag != self._callbacks.TOOL_SCANNER and toolFlag != self._callbacks.TOOL_EXTENDER:
                 return
 
             request = messageInfo.getRequest()
