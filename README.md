@@ -136,7 +136,7 @@ Choose **one** of the two installation methods below.
 
 ### Manual Inject
 
-1. Open a request in **Repeater**, **Intruder**, or any tab with a request editor
+1. Open a request in **Repeater** (or other supported message editor, excluding Intruder)
 2. Right-click on the request body
 3. Select **Insert Junk Data Size**
 4. Choose the junk size from the dropdown (8KB - 1MB) or select **Custom** for a specific size
@@ -146,6 +146,7 @@ Choose **one** of the two installation methods below.
 **Tips:**
 - For URL-encoded/JSON/XML, junk is automatically inserted at a valid position
 - For more control, highlight (select) the desired insertion point before right-clicking
+- **For Intruder**: Insert junk in Repeater first, then use **Send to Intruder**
 
 ### Auto-Inject for Scanner
 
@@ -171,7 +172,7 @@ Choose **one** of the two installation methods below.
 ## Important Notes
 
 ### Burp Suite Edition
-- **Community Edition** - Only supports **Manual Inject** (right-click menu in Repeater/Intruder)
+- **Community Edition** - Only supports **Manual Inject** (right-click menu in Repeater)
 - **Professional Edition** - Supports both **Manual Inject** and **Auto-Inject Scanner** (Active Scan required)
 
 ### HTTP Method Support
@@ -188,7 +189,7 @@ Choose **one** of the two installation methods below.
 
 ### Comment Marker
 - Injected requests are marked with the comment **"Junk Data"**
-- Visible in the **Comment** column in HTTP history
+- Visible in the **Comment** column in Logger
 
 ---
 
@@ -297,7 +298,7 @@ ls build/libs/nowafplsV2-2.0.0.jar
 - Intruder payload positions context exclusion
 - Rate-limited error alerts
 - Memory leak prevention for logging
-- Comment marker "Junk Data" on injected requests (visible in HTTP History)
+- Comment marker "Junk Data" on injected requests (visible in Logger)
 
 ### V1 (Original by Assetnote)
 - Manual junk data insertion in Repeater/Intruder
